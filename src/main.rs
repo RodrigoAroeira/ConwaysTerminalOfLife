@@ -1,7 +1,7 @@
 mod conway;
 
 use anyhow as ah;
-use conway::Grid;
+use conway::{Grid, GridError};
 use crossterm::{
     event::{self, Event, KeyCode, KeyModifiers as KM},
     terminal,
@@ -23,6 +23,11 @@ fn main() -> ah::Result<()> {
     // if provided, get from_file, else create a new grid
     let mut grid = Grid::from_file(&filename)
         .map_err(|e| {
+            if let GridError::Io(_) = e {
+                if !provided {
+                    return; // Simply ignore the error
+                }
+            }
             eprintln!("Error while loading from file: {e}. Creating default grid.");
             thread::sleep(Duration::from_secs(3));
         })
